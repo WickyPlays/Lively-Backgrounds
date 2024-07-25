@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Night Timer</title>
+    <style>
+      * {
+        font-family: Arial, Helvetica, sans-serif;
+        user-select: none !important;
+      }
+
+      p {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: black;
+        background-image: url("./background.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      #blocker {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1;
+        opacity: 0;
+      }
+
+      #timer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 4;
+      }
+
+      #timer_head {
+        color: white;
+        font-size: 60px;
+        text-align: center;
+        font-weight: 600;
+        margin-top: 20vh;
+        text-shadow: 0 0 10px #ffffff94, 0 0 20px #ffffff75;
+        margin-bottom: 5px;
+      }
+
+      #timer_info {
+        color: white;
+        font-size: 18px;
+        text-align: center;
+      }
+
+      #tip {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 4;
+      }
+
+      #tip_container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      #tip_fact {
+        color: white;
+        font-size: 17px;
+        text-align: center;
+        margin-top: 5vh;
+        text-shadow: 0 0 10px #ffffff94, 0 0 20px #ffffff75;
+        margin-bottom: 5px;
+        display: block;
+        width: 40vw;
+        box-sizing: border-box;
+      }
+
+      #flashlight {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 3;
+      }
+
+      #flashlight_light {
+        position: absolute;
+        width: 201vw;
+        height: 201vh;
+        left: 50%;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        background-image: radial-gradient(
+          circle at center,
+          transparent,
+          #000000a8 20%
+        );
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="blocker"></div>
+    <div id="timer">
+      <p id="timer_head">00:00</p>
+      <p id="timer_info">Wednesday, Jun 29th 2024</p>
+    </div>
+    <div id="tip">
+      <div id="tip_container">
+        <p><span></span><span id="tip_fact"></span></p>
+        <p id="tip_fact">
+          <b>Tips: </b><span id="tip_fact_content">Loading tips...</span>
+        </p>
+      </div>
+    </div>
+    <div id="flashlight">
+      <div id="flashlight_light"></div>
+    </div>
+
+    <script>
+      let tick = 0;
+
+      function fetchFacts() {
+        fetch("https://uselessfacts.jsph.pl/api/v2/facts/random?language=en")
+          .then((response) => response.json())
+          .then((data) => {
+            const fact = data.text;
+            document.getElementById("tip_fact_content").innerText = `${fact}`;
+          })
+          .catch((error) => {
+            document.getElementById("tip_fact_content").innerText =
+              "An error occured while fetching.";
+          });
+      }
+
+      function updateTimer() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+
+        const timerHead = document.getElementById("timer_head");
+        const timerInfo = document.getElementById("timer_info");
+
+        timerHead.textContent = `${hours}:${minutes}:${seconds}`;
+
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+
+        const dayOfWeek = days[now.getDay()];
+        const month = months[now.getMonth()];
+        const day = String(now.getDate()).padStart(2, "0");
+        const year = now.getFullYear();
+
+        timerInfo.textContent = `${dayOfWeek}, ${month} ${day}, ${year}`;
+
+        tick++;
+
+        if (tick >= 60) {
+          tick = 0;
+          fetchFacts();
+        }
+      }
+
+      fetchFacts();
+      setInterval(updateTimer, 1000);
+      updateTimer();
+
+      //Flashlight
+      document.addEventListener("mousemove", function (e) {
+        const light = document.getElementById("flashlight_light");
+        const x = e.clientX - light.offsetWidth / (light.offsetWidth / 2);
+        const y = e.clientY - light.offsetHeight / (light.offsetHeight / 2);
+        light.style.left = x + "px";
+        light.style.top = y + "px";
+      });
+    </script>
+  </body>
+</html>
